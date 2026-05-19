@@ -25,7 +25,7 @@ export default function TermsPage() {
               <li>use the materials for any commercial purpose, or for any public display (commercial or non-commercial);</li>
               <li>attempt to decompile or reverse engineer any software contained on our website;</li>
               <li>remove any copyright or other proprietary notations from the materials; or</li>
-              <li>transfer the materials to another person or "mirror" the materials on any other server.</li>
+              <li>transfer the materials to another person or &quot;mirror&quot; the materials on any other server.</li>
             </ul>
 
             <h2 className="text-2xl font-bold text-foreground">3. Donations</h2>

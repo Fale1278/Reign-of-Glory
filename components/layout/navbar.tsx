@@ -15,6 +15,7 @@ const routes = [
   { href: "/visit", label: "Visit" },
   { href: "/sermons", label: "Sermons" },
   { href: "/events", label: "Events" },
+  { href: "/media", label: "Media" },
   { href: "/ministries", label: "Ministries" },
   { href: "/livestream", label: "Livestream" },
   { href: "/give", label: "Give" },

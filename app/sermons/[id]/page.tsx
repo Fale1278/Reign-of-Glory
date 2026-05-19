@@ -1,18 +1,23 @@
 import { Button } from "@/components/ui/button"
 import { ArrowLeft, Calendar, User, Video, FileText } from "lucide-react"
 import Link from "next/link"
+import { getSermonById } from "@/lib/db"
 
-export default async function SermonDetailPage({ params }: { params: { id: string } }) {
-  // In production, fetch data from Supabase using params.id
-  const sermon = {
-    title: "The Power of Faith",
-    speaker: "Pastor John Doe",
-    date: "Oct 29, 2023",
-    description: "Discover how faith can move mountains in your everyday life and bring you closer to God's promises. This message explores the biblical foundation of faith and how to apply it practically to overcome obstacles.",
-    videoUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ", // Example placeholder
-    scripture: "Hebrews 11:1",
-    tags: ["Faith", "Victory", "Trust"]
-  }
+export default async function SermonDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
+  const sermon = await getSermonById(id)
+  
+  const formattedDate = new Date(sermon.date).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    timeZone: "UTC"
+  })
+
+  const scripture = sermon.scripture_references && sermon.scripture_references.length > 0
+    ? sermon.scripture_references.join(", ")
+    : "Hebrews 11:1"
+
 
   return (
     <div className="flex flex-col min-h-screen pt-16">
@@ -26,7 +31,7 @@ export default async function SermonDetailPage({ params }: { params: { id: strin
             <div className="lg:col-span-2 space-y-6">
               <div className="aspect-video bg-black rounded-xl overflow-hidden shadow-lg border">
                 <iframe 
-                  src={sermon.videoUrl}
+                  src={sermon.video_url}
                   className="w-full h-full"
                   allowFullScreen
                 />
@@ -34,12 +39,12 @@ export default async function SermonDetailPage({ params }: { params: { id: strin
               <div className="space-y-4">
                 <h1 className="text-3xl md:text-4xl font-bold">{sermon.title}</h1>
                 <div className="flex flex-wrap gap-4 text-sm text-muted-foreground border-b pb-4">
-                  <span className="flex items-center"><Calendar className="w-4 h-4 mr-1" /> {sermon.date}</span>
+                  <span className="flex items-center"><Calendar className="w-4 h-4 mr-1" /> {formattedDate}</span>
                   <span className="flex items-center"><User className="w-4 h-4 mr-1" /> {sermon.speaker}</span>
-                  <span className="flex items-center font-semibold text-primary"><FileText className="w-4 h-4 mr-1" /> {sermon.scripture}</span>
+                  <span className="flex items-center font-semibold text-primary"><FileText className="w-4 h-4 mr-1" /> {scripture}</span>
                 </div>
                 <div className="flex flex-wrap gap-2 pt-2">
-                  {sermon.tags.map(tag => (
+                  {sermon.tags.map((tag: string) => (
                     <span key={tag} className="px-3 py-1 bg-secondary text-secondary-foreground rounded-full text-xs font-medium">
                       {tag}
                     </span>

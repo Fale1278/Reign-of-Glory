@@ -123,3 +123,35 @@ CREATE POLICY "Public can view blog posts" ON blog_posts FOR SELECT USING (true)
 CREATE POLICY "Admins can insert blog posts" ON blog_posts FOR INSERT WITH CHECK (EXISTS (SELECT 1 FROM user_roles WHERE user_id = auth.uid()));
 CREATE POLICY "Admins can update blog posts" ON blog_posts FOR UPDATE USING (EXISTS (SELECT 1 FROM user_roles WHERE user_id = auth.uid()));
 CREATE POLICY "Admins can delete blog posts" ON blog_posts FOR DELETE USING (EXISTS (SELECT 1 FROM user_roles WHERE user_id = auth.uid()));
+
+-- Create Media Items Table
+CREATE TABLE media_items (
+  id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+  title TEXT NOT NULL,
+  description TEXT,
+  type TEXT NOT NULL, -- 'image', 'audio', 'video'
+  file_url TEXT NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Create Comments Table
+CREATE TABLE comments (
+  id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+  media_id UUID REFERENCES media_items(id) ON DELETE CASCADE,
+  name TEXT NOT NULL,
+  comment TEXT NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Enable RLS
+ALTER TABLE media_items ENABLE ROW LEVEL SECURITY;
+ALTER TABLE comments ENABLE ROW LEVEL SECURITY;
+
+-- Policies for Media Items
+CREATE POLICY "Public can view media items" ON media_items FOR SELECT USING (true);
+CREATE POLICY "Public can insert media items" ON media_items FOR INSERT WITH CHECK (true);
+CREATE POLICY "Public can delete media items" ON media_items FOR DELETE USING (true);
+
+-- Policies for Comments
+CREATE POLICY "Public can view comments" ON comments FOR SELECT USING (true);
+CREATE POLICY "Public can insert comments" ON comments FOR INSERT WITH CHECK (true);

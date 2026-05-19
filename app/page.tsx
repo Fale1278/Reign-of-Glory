@@ -3,8 +3,13 @@ import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { MapPin, Clock, Calendar, Video, ArrowRight, Heart, Mail, Quote } from "lucide-react"
+import { getSermons, getEvents } from "@/lib/db"
 
-export default function Home() {
+export default async function Home() {
+  const [sermons, events] = await Promise.all([getSermons(), getEvents()])
+  const latestSermon = sermons[0] || null
+  const upcomingEvents = events.slice(0, 3)
+
   return (
     <div className="flex flex-col min-h-screen">
       {/* Hero Section */}
@@ -98,33 +103,37 @@ export default function Home() {
                   <Link href="/sermons">View Library <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" /></Link>
                 </Button>
               </div>
-              <div className="group relative rounded-3xl overflow-hidden shadow-2xl border bg-card">
-                <div className="aspect-video bg-muted relative overflow-hidden">
-                  <div className="absolute inset-0 bg-black/30 group-hover:bg-black/50 transition-all duration-500 z-10 flex items-center justify-center">
-                    <div className="w-20 h-20 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center transform transition-transform group-hover:scale-110">
-                      <Video className="w-10 h-10 text-white fill-white/20" />
+              {latestSermon ? (
+                <div className="group relative rounded-3xl overflow-hidden shadow-2xl border bg-card">
+                  <div className="aspect-video bg-muted relative overflow-hidden">
+                    <div className="absolute inset-0 bg-black/30 group-hover:bg-black/50 transition-all duration-500 z-10 flex items-center justify-center">
+                      <div className="w-20 h-20 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center transform transition-transform group-hover:scale-110">
+                        <Video className="w-10 h-10 text-white fill-white/20" />
+                      </div>
                     </div>
+                    <Image 
+                      src={latestSermon.thumbnail}
+                      alt={latestSermon.title}
+                      fill
+                      className="object-cover transition-transform duration-700 group-hover:scale-110"
+                    />
                   </div>
-                  <Image 
-                    src="https://images.unsplash.com/photo-1544427920-c49ccfb85579?q=80&w=2000&auto=format&fit=crop"
-                    alt="Latest Sermon"
-                    fill
-                    className="object-cover transition-transform duration-700 group-hover:scale-110"
-                  />
-                </div>
-                <div className="p-8">
-                  <div className="flex items-center gap-4 text-sm font-bold text-primary uppercase tracking-widest mb-4">
-                    <span>Oct 29, 2023</span>
-                    <span className="w-1 h-1 bg-primary rounded-full" />
-                    <span>Pastor John Doe</span>
+                  <div className="p-8">
+                    <div className="flex items-center gap-4 text-sm font-bold text-primary uppercase tracking-widest mb-4">
+                      <span>{new Date(latestSermon.date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</span>
+                      <span className="w-1 h-1 bg-primary rounded-full" />
+                      <span>{latestSermon.speaker}</span>
+                    </div>
+                    <h3 className="text-3xl font-bold mb-4 group-hover:text-primary transition-colors">{latestSermon.title}</h3>
+                    <p className="text-muted-foreground text-lg mb-8 leading-relaxed line-clamp-2">{latestSermon.description}</p>
+                    <Button asChild className="w-full md:w-auto px-10 h-12 rounded-full">
+                      <Link href={`/sermons/${latestSermon.id}`}>Watch Now</Link>
+                    </Button>
                   </div>
-                  <h3 className="text-3xl font-bold mb-4 group-hover:text-primary transition-colors">The Power of Faith</h3>
-                  <p className="text-muted-foreground text-lg mb-8 leading-relaxed">Discover how faith can move mountains in your everyday life and bring you closer to God&apos;s promises through this powerful message.</p>
-                  <Button asChild className="w-full md:w-auto px-10 h-12 rounded-full">
-                    <Link href="/sermons/1">Watch Now</Link>
-                  </Button>
                 </div>
-              </div>
+              ) : (
+                <p className="text-muted-foreground text-lg">No sermons available yet.</p>
+              )}
             </div>
 
             <div className="lg:w-1/3 space-y-8">
@@ -135,24 +144,30 @@ export default function Home() {
                 </Button>
               </div>
               <div className="space-y-6">
-                {[
-                  { day: "11", title: "Night of Worship", time: "7:00 PM" },
-                  { day: "15", title: "Youth Conference", time: "10:00 AM" },
-                  { day: "19", title: "Community Outreach", time: "9:00 AM" }
-                ].map((event, i) => (
-                  <div key={i} className="flex gap-6 group cursor-pointer">
-                    <div className="bg-primary/10 text-primary rounded-2xl p-4 text-center min-w-[85px] h-[85px] flex flex-col justify-center transition-colors group-hover:bg-primary group-hover:text-white">
-                      <p className="text-xs font-bold uppercase tracking-widest">Nov</p>
-                      <p className="text-2xl font-black">{event.day}</p>
-                    </div>
-                    <div className="flex-1 border-b pb-4">
-                      <h4 className="font-bold text-xl group-hover:text-primary transition-colors">{event.title}</h4>
-                      <div className="flex items-center text-sm text-muted-foreground mt-2 gap-4">
-                        <span className="flex items-center"><Clock className="w-4 h-4 mr-2" /> {event.time}</span>
-                      </div>
-                    </div>
-                  </div>
-                ))}
+                {upcomingEvents.length > 0 ? (
+                  upcomingEvents.map((event) => {
+                    const eDate = new Date(event.date)
+                    const month = eDate.toLocaleDateString("en-US", { month: "short" })
+                    const day = eDate.toLocaleDateString("en-US", { day: "2-digit" })
+                    const time = eDate.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" })
+                    return (
+                      <Link key={event.id} href={`/events/${event.id}`} className="flex gap-6 group cursor-pointer">
+                        <div className="bg-primary/10 text-primary rounded-2xl p-4 text-center min-w-[85px] h-[85px] flex flex-col justify-center transition-colors group-hover:bg-primary group-hover:text-white">
+                          <p className="text-xs font-bold uppercase tracking-widest">{month}</p>
+                          <p className="text-2xl font-black">{day}</p>
+                        </div>
+                        <div className="flex-1 border-b pb-4">
+                          <h4 className="font-bold text-xl group-hover:text-primary transition-colors">{event.title}</h4>
+                          <div className="flex items-center text-sm text-muted-foreground mt-2 gap-4">
+                            <span className="flex items-center"><Clock className="w-4 h-4 mr-2" /> {time}</span>
+                          </div>
+                        </div>
+                      </Link>
+                    )
+                  })
+                ) : (
+                  <p className="text-muted-foreground text-lg">No upcoming events.</p>
+                )}
               </div>
             </div>
           </div>
@@ -171,7 +186,7 @@ export default function Home() {
               { name: "Linda R.", text: "The prayer team stood with me through my darkest hour. I am a living testimony of God's healing power." }
             ].map((t, i) => (
               <Card key={i} className="border-none shadow-xl bg-background p-8 text-left relative">
-                <p className="text-muted-foreground italic mb-6 text-lg">"{t.text}"</p>
+                <p className="text-muted-foreground italic mb-6 text-lg">&ldquo;{t.text}&rdquo;</p>
                 <p className="font-bold text-primary">— {t.name}</p>
               </Card>
             ))}

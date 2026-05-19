@@ -54,6 +54,7 @@ export default function VisitPage() {
             </div>
           </div>
         </div>
+      </section>
       <section className="py-24 border-t">
         <div className="container mx-auto px-4 max-w-4xl">
           <h2 className="text-4xl font-bold mb-12 text-center">Frequently Asked Questions</h2>

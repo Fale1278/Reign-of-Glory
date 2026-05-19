@@ -1,24 +1,31 @@
 import { Button } from "@/components/ui/button"
+import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card"
 import { ArrowLeft, Calendar, MapPin, Clock, Share2 } from "lucide-react"
 import Link from "next/link"
+import { getEventById } from "@/lib/db"
+import EventRegistrationForm from "@/components/EventRegistrationForm"
 
-export default async function EventDetailPage({ params }: { params: { id: string } }) {
-  // In production, fetch data from Supabase using params.id
-  const event = {
-    title: "Night of Worship",
-    date: "Nov 11, 2023",
-    time: "7:00 PM",
-    location: "Main Sanctuary",
-    description: "Join us for an extended time of worship and encountering the presence of God. This special night is dedicated to lifting up the name of Jesus through song, prayer, and collective worship. We invite you to bring your family and friends for what promises to be a life-changing encounter.",
-    image: "https://images.unsplash.com/photo-1438232992991-995b7058bbb3?q=80&w=2073&auto=format&fit=crop"
-  }
+export default async function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
+  const event = await getEventById(id)
+
+  const eDate = new Date(event.date)
+  const formattedDate = eDate.toLocaleDateString("en-US", {
+    month: "long",
+    day: "numeric",
+    year: "numeric"
+  })
+  const formattedTime = eDate.toLocaleTimeString("en-US", {
+    hour: "numeric",
+    minute: "2-digit"
+  })
 
   return (
     <div className="flex flex-col min-h-screen pt-16">
       <section className="relative h-[40vh] md:h-[50vh] overflow-hidden">
         <div className="absolute inset-0 bg-black/50 z-10" />
         <img 
-          src={event.image} 
+          src={event.image_url} 
           alt={event.title} 
           className="absolute inset-0 w-full h-full object-cover"
         />
@@ -50,7 +57,7 @@ export default async function EventDetailPage({ params }: { params: { id: string
               <div className="pt-8 border-t">
                 <h3 className="text-2xl font-bold mb-6">Location Map</h3>
                 <div className="aspect-video bg-muted rounded-xl border flex items-center justify-center text-muted-foreground">
-                  <MapPin className="w-8 h-8 mr-2" /> 123 Glory Avenue, City Center
+                  <MapPin className="w-8 h-8 mr-2" /> {event.location}
                 </div>
               </div>
             </div>
@@ -67,7 +74,7 @@ export default async function EventDetailPage({ params }: { params: { id: string
                     </div>
                     <div>
                       <p className="text-sm text-muted-foreground">Date</p>
-                      <p className="font-semibold">{event.date}</p>
+                      <p className="font-semibold">{formattedDate}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-4">
@@ -76,7 +83,7 @@ export default async function EventDetailPage({ params }: { params: { id: string
                     </div>
                     <div>
                       <p className="text-sm text-muted-foreground">Time</p>
-                      <p className="font-semibold">{event.time}</p>
+                      <p className="font-semibold">{formattedTime}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-4">
@@ -89,11 +96,9 @@ export default async function EventDetailPage({ params }: { params: { id: string
                     </div>
                   </div>
                 </CardContent>
-                <CardFooter className="flex flex-col gap-4">
-                  <Button className="w-full h-12 text-lg">Register Now</Button>
-                  <Button variant="outline" className="w-full">
-                    <Share2 className="mr-2 w-4 h-4" /> Share Event
-                  </Button>
+                <CardFooter className="flex flex-col gap-4 border-t pt-6">
+                  <h4 className="text-lg font-bold w-full text-left">Register for this Event</h4>
+                  <EventRegistrationForm eventId={event.id} />
                 </CardFooter>
               </Card>
             </div>

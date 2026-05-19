@@ -2,36 +2,11 @@ import Link from "next/link"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Video, Calendar as CalendarIcon, User } from "lucide-react"
+import { getSermons } from "@/lib/db"
 
-// Mock data, in production this comes from Supabase
-const sermons = [
-  {
-    id: 1,
-    title: "The Power of Faith",
-    speaker: "Pastor John Doe",
-    date: "Oct 29, 2023",
-    thumbnail: "https://images.unsplash.com/photo-1544427920-c49ccfb85579?q=80&w=2000&auto=format&fit=crop",
-    tags: ["Faith", "Growth"],
-  },
-  {
-    id: 2,
-    title: "Walking in Love",
-    speaker: "Pastor Jane Smith",
-    date: "Oct 22, 2023",
-    thumbnail: "https://images.unsplash.com/photo-1529070538774-1843cb3265df?q=80&w=2000&auto=format&fit=crop",
-    tags: ["Love", "Relationships"],
-  },
-  {
-    id: 3,
-    title: "Overcoming Fear",
-    speaker: "Pastor John Doe",
-    date: "Oct 15, 2023",
-    thumbnail: "https://images.unsplash.com/photo-1438232992991-995b7058bbb3?q=80&w=2073&auto=format&fit=crop",
-    tags: ["Victory", "Mindset"],
-  }
-]
+export default async function SermonsPage() {
+  const sermons = await getSermons()
 
-export default function SermonsPage() {
   return (
     <div className="flex flex-col min-h-screen pt-16">
       <section className="bg-primary text-primary-foreground py-20 text-center">
@@ -58,12 +33,12 @@ export default function SermonsPage() {
                 </div>
                 <CardContent className="p-6">
                   <div className="flex items-center text-sm text-muted-foreground mb-3 space-x-4">
-                    <span className="flex items-center"><CalendarIcon className="w-4 h-4 mr-1" /> {sermon.date}</span>
+                    <span className="flex items-center"><CalendarIcon className="w-4 h-4 mr-1" /> {new Date(sermon.date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" })}</span>
                     <span className="flex items-center"><User className="w-4 h-4 mr-1" /> {sermon.speaker}</span>
                   </div>
                   <h3 className="text-xl font-bold mb-4 line-clamp-1">{sermon.title}</h3>
                   <div className="flex flex-wrap gap-2 mb-6">
-                    {sermon.tags.map(tag => (
+                    {sermon.tags.map((tag: string) => (
                       <span key={tag} className="text-xs px-2 py-1 bg-secondary text-secondary-foreground rounded-full">
                         {tag}
                       </span>
